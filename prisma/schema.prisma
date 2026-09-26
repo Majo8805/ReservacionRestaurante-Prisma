@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generado/prisma"
+  moduleformat = "cjs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Cliente {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @db.VarChar(80)
+  telefono      String        @db.VarChar(20) 
+  correo        String        @unique @db.VarChar(150)
+  
+  reservaciones Reservacion[] 
+
+  @@map("clientes")
+}
+
+model Mesa {
+  id            Int           @id @default(autoincrement())
+  numero        Int           @unique
+  capacidad     Int
+  
+  reservaciones Reservacion[] 
+
+  @@map("mesas")
+}
+
+model Turno {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @db.VarChar(80)
+  horaInicio    String        @db.VarChar(5)
+  horaFin       String        @db.VarChar(5)
+  
+  reservaciones Reservacion[] 
+
+  @@map("turnos")
+}
+
+enum EstadoReservacion {
+  confirmada
+  cancelada
+  completada
+}
+
+model Reservacion {
+  id          Int               @id @default(autoincrement())
+  fecha       DateTime          @default(now())
+  estado      EstadoReservacion @default(confirmada)
+
+  clienteId   Int
+  mesaId      Int
+  turnoId     Int
+
+  cliente     Cliente           @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  mesa        Mesa              @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+  turno       Turno             @relation(fields: [turnoId], references: [id], onDelete: Cascade)
+
+  @@unique ([mesaId, turnoId])
+  @@map("reservaciones")
+}
